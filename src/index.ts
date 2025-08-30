@@ -1,3 +1,7 @@
+import * as fs from "fs";
+import remove from "lodash/remove";
+import { orderBy } from "lodash";
+
 class ListaDeCosas {
   name: string;
   cosas: any[] = [];
@@ -24,6 +28,41 @@ class Product {
   }
 }
 
-class ListaDeProductos extends ListaDeCosas {}
+class ListaDeProductos extends ListaDeCosas {
+  constructor(n: string) {
+    // Llamada al constructor de la superclase: ListaDeCosas
+    super(n);
+
+    // Lógica adicional para leer products.json y agregar productos usando addProduct
+    const contenidoDelArchivoProductsJson = fs.readFileSync(__dirname + "/products.json").toString();
+    const productosDelArchivo = JSON.parse(contenidoDelArchivoProductsJson);
+    productosDelArchivo.forEach((product: Product) => {
+      this.addProduct(product);
+    });
+  }
+
+  addProduct(product: Product): void {
+    const exists = this.cosas.filter((cosa) => cosa.id === product.id).length > 0;
+    if (!exists) {
+      this.cosas.push(product);
+    } else {
+      console.log(`El producto con id ${product.id} ya existe.`);
+    }
+  }
+
+  getProduct(id: number): Product {
+    const cosas = this.getCosas();
+    return cosas.find((cosa) => cosa.id === id);
+  }
+
+  removeProduct(id: number): void {
+    remove(this.cosas, (cosa) => cosa.id === id);
+    console.log("Producto eliminado");
+  }
+
+  getSortedByPrice(order: "asc" | "desc"): Product[] {
+    return orderBy(this.cosas, ["price"], [order]);
+  }
+}
 
 export { ListaDeProductos, Product };
